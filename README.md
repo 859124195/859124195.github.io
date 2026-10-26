@@ -2,7 +2,18 @@
 
 面向班级心理委员的**匿名问卷应用**：同学们点开链接即可匿名填写，数据进入云端数据库；心理委员用密码登录结果页查看统计、导出 CSV，用于班会排期与日常关怀。
 
-**零后端代码**——数据能力由云数据库提供，本仓库只有 3 个静态文件。
+**零后端代码**——数据能力由云数据库提供，本仓库只有 2 个静态文件。
+
+## 架构说明（重要）
+
+本仓库的两个页面是**嵌入壳（shell）**：页面内通过 iframe 嵌入托管在 WorkBuddy 云平台上的完整问卷应用，数据请求发生在 iframe 内部（与数据库同源，不受浏览器跨域限制）。
+
+```
+浏览器打开 github.io 域名
+  └─ iframe → class-survey-65603.app.workbuddy.host（完整问卷应用 + 数据库读写）
+```
+
+> 为什么不直接在前端调数据库？云数据库接口的跨域白名单只放行自身域名与本地开发源，外部域名下的 `fetch` 会被浏览器 CORS 策略拦截（预检不过）。iframe 是纯静态站点调用该数据库的标准解法。
 
 ## 功能
 
@@ -21,12 +32,11 @@
 ├── LICENSE            ← MIT 许可证
 ├── .gitignore
 └── docs/              ← GitHub Pages 站点目录（Settings → Pages → Source 选 /docs）
-    ├── index.html     ← 填表页（站点首页，发给同学的就是它）
-    ├── results.html   ← 结果统计页（仅心理委员使用，需密码）
-    └── cloud-mini.js  ← 轻量云数据库客户端（约 50 行，替代官方 SDK）
+    ├── index.html     ← 填表页（站点首页，iframe 壳，发给同学的就是它）
+    └── results.html   ← 结果统计页（iframe 壳，仅心理委员使用，需密码）
 ```
 
-> 仓库内**不含任何密钥**：数据库连接配置由页面打开时从线上实时拉取。
+> 仓库内**不含任何密钥**：数据库连接配置在 iframe 嵌入的托管应用内。
 
 ## 本地预览
 
@@ -49,12 +59,12 @@ cd docs && python -m http.server 8000
 ### 方式二：Cloudflare Pages
 
 1. 登录 <https://dash.cloudflare.com> → **Workers 和 Pages → 创建 → Pages → 上传资产**
-2. 项目名起英文小写名，上传 `docs/` 里的 **3 个文件**
+2. 项目名起英文小写名，上传 `docs/` 里的 **2 个文件**
 3. 部署完成即得 `https://<项目名>.pages.dev`（填表页在首页，结果页在 `/results.html`）
 
 ### 方式三：其他静态托管
 
-Netlify、Vercel、Gitee Pages、阿里云 OSS 等均可，把 `docs/` 下 3 个文件传上去即可，无构建步骤。
+Netlify、Vercel、Gitee Pages、阿里云 OSS 等均可，把 `docs/` 下 2 个文件传上去即可，无构建步骤。
 
 ## 数据说明
 
